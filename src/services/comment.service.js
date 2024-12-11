@@ -7,7 +7,7 @@ const {
   BadRequestError,
   NotFoundError,
   APIError,
-} = require("../lib/CustomError");
+} = require("../lib/customError");
 
 const createComment = async (userId, postId, commentText) => {
   console.log("in create comment service", postId, userId, commentText);
