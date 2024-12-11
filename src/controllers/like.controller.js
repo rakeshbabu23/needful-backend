@@ -7,7 +7,7 @@ const {
   ForbiddenError,
   BadRequestError,
   APIError,
-} = require("../lib/CustomError");
+} = require("../lib/customError");
 
 const handleLike = async (req, res, next) => {
   try {

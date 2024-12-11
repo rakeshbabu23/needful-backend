@@ -8,7 +8,7 @@ const {
   BadRequestError,
   NotFoundError,
   APIError,
-} = require("../lib/CustomError");
+} = require("../lib/customError");
 
 const createComment = async (req, res, next) => {
   try {

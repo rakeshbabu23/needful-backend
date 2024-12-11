@@ -6,7 +6,7 @@ const {
   ForbiddenError,
   BadRequestError,
   APIError,
-} = require("../lib/CustomError");
+} = require("../lib/customError");
 
 const createPost = async (req, res, next) => {
   try {
