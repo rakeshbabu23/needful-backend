@@ -3,7 +3,7 @@ const { Session, User } = require("../models");
 const { generateAccessToken } = require("../utils/jwt.util");
 const { jwtSecret } = require("../config/config");
 const { extractCity } = require("../utils/reverseGeocoding.util");
-// const admin = require("../config/firebase.config");
+//const admin = require("../config/firebase.config");
 const {
   ValidationError,
   UnauthorizedError,
@@ -41,13 +41,11 @@ const createUserWithFirebaseToken = async (
 
   let accessToken = null,
     refreshToken = null;
-  console.log("Access token", userLocation, typeof userLocation);
   const sanitizedCoordinates = userLocation
     .replace(/[\[\]']/g, "") // Remove brackets and single quotes
     .split(",") // Split by comma
     .map(Number); // Convert to numbers
   if (!checkEmailExists) {
-    console.log("Please enter a valid", sanitizedCoordinates);
     let address = "";
     try {
       const options = {
@@ -61,7 +59,6 @@ const createUserWithFirebaseToken = async (
       console.error("Error fetching address", err);
       throw err;
     }
-    console.log("Address:", address);
     const newUser = await User.create({
       email,
       password,
@@ -121,28 +118,52 @@ const createUserWithFirebaseToken = async (
   }
 };
 
-const login = async (email, password) => {
-  const user = await User.findOne({ email }).select("+password");
+const login = async (email, password, location) => {
+  const user = await User.findOne({ email });
   if (!user) {
-    throw new UnauthorizedError("Invalid email or password");
+    throw new UnauthorizedError("Email not found.Please sign up");
   }
   const isMatch = await user.comparePassword(password);
   if (!isMatch) {
     throw new UnauthorizedError("Invalid email or password");
   }
+  let updatedUser = null;
+  try {
+    const sanitizedCoordinates = location
+      .replace(/[\[\]']/g, "") // Remove brackets and single quotes
+      .split(",") // Split by comma
+      .map(Number); // Convert to numbers
+    const options = {
+      method: "GET",
+      url: `https://us1.locationiq.com/v1/reverse?lat=${sanitizedCoordinates[1]}&lon=${sanitizedCoordinates[0]}&key=${LOCATIONIQ_API_KEY}`,
+      headers: { accept: "application/json" },
+    };
+    const response = await axios.request(options);
+    const address = await extractCity(response.data);
+    user.location = {
+      type: "Point",
+      coordinates: sanitizedCoordinates,
+    };
+    user.address = address;
+    updatedUser = await user.save();
+  } catch (err) {
+    console.error("Error fetching address", err.response.data);
+    throw err;
+  }
   const accessToken = generateAccessToken(
-    { userId: user._id, email, name: user.name },
+    { userId: updatedUser._id, email, name: user.name },
     "1d",
     process.env.JWT_ACCESS_SECRET
   );
   const refreshToken = generateAccessToken(
-    { userId: user._id, email, name: user.name },
+    { userId: updatedUser._id, email, name: user.name },
     "15d",
     process.env.JWT_REFRESH_SECRET
   );
-  await Session.deleteOne({ userId: user._id });
-  await Session.create({ userId: user._id, refreshToken });
+  await Session.deleteOne({ userId: updatedUser._id });
+  await Session.create({ userId: updatedUser._id, refreshToken });
+  console.log("Updated user");
   return { accessToken, refreshToken, user };
 };
 
-module.exports = { createUserWithFirebaseToken };
+module.exports = { createUserWithFirebaseToken, login };

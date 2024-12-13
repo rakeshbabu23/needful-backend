@@ -11,9 +11,7 @@ const updateUser = async (req, res, next) => {
   try {
     const { userId } = req.cookies;
     const file = req.file;
-    console.log("i am in update uyser", req.body);
     const updatedUser = await userService.updateUser(userId, req.body, file);
-    console.log("updated user", updatedUser);
     res.status(200).json({ data: updatedUser });
   } catch (e) {
     if (e instanceof APIError) {
@@ -70,7 +68,6 @@ const nearbyPeople = async (req, res, next) => {
         message: "User not authenticated",
       });
     }
-    console.log("User logged in");
     const people = await userService.nearbyPeople(userId, req.query);
     res.status(200).json({ data: people });
   } catch (e) {
@@ -89,7 +86,6 @@ const userCurrentLocation = async (req, res, next) => {
         message: "User not authenticated",
       });
     }
-    console.log("aaaaaaaaaaaaa", req.query);
     const { lat, long } = req.query;
     if (!lat || !long) {
       throw new BadRequestError("Missing latitude or longitude", {

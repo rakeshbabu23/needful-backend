@@ -15,7 +15,6 @@ const { range } = require("../constants/diatance");
 const { extractCity } = require("../utils/reverseGeocoding.util");
 
 const updateUser = async (userId, userInfo, file) => {
-  console.log("in update user servce", userInfo);
   const user = await User.findById(userId);
   if (!user) {
     throw new NotFoundError("User not found");
@@ -109,7 +108,6 @@ const nearbyPeople = async (userId, filters = {}) => {
 };
 
 const getUserCurrentLocation = async ({ lat, long }) => {
-  console.log("Getting", lat, long);
   let address = "";
   try {
     const options = {
@@ -131,7 +129,6 @@ const userPosts = async (userId, filters, page) => {
   if (!user) {
     throw new NotFoundError("User not found");
   }
-  console.log("User", filters);
   let query = { owner: userId };
   if (filters?.postType) {
     if (filters.postType === "Texts") {
@@ -157,7 +154,6 @@ const userPosts = async (userId, filters, page) => {
     delete postObject.owner; // Remove the original 'owner' field
     return postObject;
   });
-  console.log("--------------------------------", updatedPosts);
 
   return updatedPosts;
 };
@@ -175,13 +171,42 @@ const getNearbyTags = async (userId, filters) => {
       $geoNear: {
         near: { type: "Point", coordinates: user.location.coordinates },
         distanceField: "dist.calculated",
-        maxDistance: range[filters.maxDistance] || 10000,
+        maxDistance: range[filters.maxDistance] || 10000, // Adjust as per range logic
         spherical: true,
       },
     },
+    {
+      $match: {
+        $or: [
+          { expiresIn: { $exists: false } },
+          {
+            $expr: {
+              $gte: [
+                "$createdAt",
+                {
+                  $subtract: [
+                    new Date(),
+                    { $multiply: ["$expiresIn", 60 * 60 * 1000] }, // Convert hours to milliseconds
+                  ],
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        tags: 1, // Include only the tags field
+      },
+    },
   ];
+
   const posts = await Post.aggregate(pipeline);
+
+  // Extract unique tags from posts
   const uniqueTags = [...new Set(posts.flatMap((post) => post.tags))];
+
   return uniqueTags;
 };
 

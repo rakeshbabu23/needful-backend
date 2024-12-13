@@ -18,7 +18,6 @@ const createComment = async (req, res, next) => {
         message: "User not authenticated",
       });
     }
-    console.log("in create comment", req.body);
     const { postId, content } = req.body;
     const newComment = await commentService.createComment(
       userId,
@@ -45,7 +44,6 @@ const getCommentsOfPost = async (req, res, next) => {
     const { postId } = req.params;
     const page = parseInt(req.query.page) || 1;
     const comments = await commentService.getCommentsOfPost(postId, page);
-    console.log("Comments", comments);
     res.status(200).json({ data: comments });
   } catch (e) {
     if (e instanceof APIError) {

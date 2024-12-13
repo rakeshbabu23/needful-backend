@@ -1,7 +1,7 @@
 const { APIError, BadRequestError } = require("../lib/customError");
 
 const errorMiddleware = async (err, req, res, next) => {
-  console.log("eeeeeeeeeeeeeeeeeeeeeeee", err);
+  //console.log("eeeeeeeeeeeeeeeeeeeeeeee", err);
   res.contentBody = {
     status: "error",
     statusCode: err.statusCode || 500,

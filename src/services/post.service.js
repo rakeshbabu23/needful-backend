@@ -15,7 +15,6 @@ const { range } = require("../constants/diatance");
 
 const createPost = async (userId, postInfo, files) => {
   const user = await User.findById(userId);
-  console.log("qqqqqqqqqqqqqqqqqq", postInfo);
   if (!user) {
     throw new NotFoundError("User not found", {
       message: "User not found",
@@ -29,7 +28,6 @@ const createPost = async (userId, postInfo, files) => {
       throw new BadRequestError("Failed to upload files to S3", error);
     }
   }
-  console.log("================================", mediaFiles);
   let images = [],
     videos = [];
   mediaFiles.map((mediaFile, index) => {
@@ -71,7 +69,6 @@ const createPost = async (userId, postInfo, files) => {
 };
 
 const getPosts = async (userId, filters, page = 1, limit = 10) => {
-  console.log("GET POSTTTTTTTTTTTTTTTTT", page, limit);
   //console.log("GET POST FILTERS", typeof JSON.parse(filters.tags));
   // Fetch user by ID
   const user = await User.findById(userId);

@@ -4,6 +4,7 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 const { userController } = require("../controllers");
 const { authMiddleware } = require("../middlewares");
+router.post("/logout", authMiddleware.verifyToken, userController.logout);
 router.patch(
   "/",
   authMiddleware.verifyToken,
@@ -20,6 +21,5 @@ router.get("/", authMiddleware.verifyToken, userController.getUserInfo);
 router.post("/", authMiddleware.verifyToken, userController.logout);
 router.get("/posts", authMiddleware.verifyToken, userController.userPosts);
 router.get("/tags", authMiddleware.verifyToken, userController.getNearbyTags);
-router.get("/logout", authMiddleware.verifyToken, userController.logout);
 
 module.exports = router;

@@ -44,7 +44,6 @@ const sendMessage = async (senderId, receiverId, chatId, text) => {
   return message;
 };
 const getMessages = async (senderId, receiverId, chatId, page) => {
-  console.log("in get messages", senderId, receiverId, chatId, page);
   const sender = await User.findById(senderId);
   if (!sender) {
     throw new NotFoundError("Sender not found", {

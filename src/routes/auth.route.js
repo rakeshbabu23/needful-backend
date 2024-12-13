@@ -8,5 +8,6 @@ router.post(
   upload.single("profileImage"),
   authController.createUserWithFirebaseToken
 );
+router.post("/login", authController.login);
 
 module.exports = router;

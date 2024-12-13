@@ -10,7 +10,6 @@ const {
 } = require("../lib/customError");
 
 const createComment = async (userId, postId, commentText) => {
-  console.log("in create comment service", postId, userId, commentText);
   const post = await Post.findById(postId);
   if (!post) {
     throw new NotFoundError("Post not found");

@@ -10,20 +10,16 @@ const {
 
 const createPost = async (req, res, next) => {
   try {
-    console.log("qqqqqqqqqqqq");
     const { userId } = req.cookies;
-    console.log("Creating", req.body);
     if (!userId) {
       throw new UnauthorizedError("User not authenticated", {
         message: "User not authenticated",
       });
     }
     const files = req.files;
-    console.log("Files", `userId:${userId}`);
     req.app.io.to(`userId:${userId}`).emit({ postStatus: "loading" });
     const newPost = await postService.createPost(userId, req.body, files);
     req.app.io.to(`userId:${userId}`).emit({ postStatus: "completed" });
-    console.log(newPost);
     res
       .status(201)
       .json({ message: "Post created successfully", data: newPost });

@@ -17,7 +17,6 @@ const handleLike = async (req, res, next) => {
         message: "User not authenticated",
       });
     }
-    console.log("User authenticated", req.body);
     const { postId } = req.body;
     if (!postId) {
       throw new BadRequestError("Missing post ID", {
@@ -25,7 +24,6 @@ const handleLike = async (req, res, next) => {
       });
     }
     const { message } = await likeService.handleLike(userId, postId);
-    console.log("Message", message);
     res.status(201).json({ message });
   } catch (e) {
     if (e instanceof APIError) {

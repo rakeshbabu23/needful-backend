@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema(
   {
@@ -53,5 +54,17 @@ const userSchema = new mongoose.Schema(
 
 // Create a 2dsphere index specifically on location
 userSchema.index({ location: "2dsphere" });
+
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next(); // Skip hashing if the password hasn't changed
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
+
+// Compare password method
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
 
 module.exports = mongoose.model("User", userSchema);

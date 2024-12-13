@@ -78,19 +78,15 @@ io.on("connection", (socket) => {
   );
 
   socket.on("user_online_status", ({ roomName, userId, receiverId }) => {
-    console.log("user_online_status", roomName, receiverId);
     const socketId = userSocketMap[receiverId];
     const room = io.sockets.adapter.rooms.get(roomName);
     if (room && socketId && room.has(socketId)) {
-      console.log("in if");
       io.to(userSocketMap[userId]).emit("user_in_room", {
         roomName,
         receiverId,
         isPresent: true,
       });
     } else {
-      console.log("in else", userSocketMap[userId]);
-      console.log(`User ${receiverId} not in room ${roomName}`);
       io.to(userSocketMap[userId]).emit("user_in_room", {
         roomName,
         receiverId,

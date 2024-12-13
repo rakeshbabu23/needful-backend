@@ -12,9 +12,7 @@ const createUserWithFirebaseToken = async (req, res, next) => {
   try {
     const { name, email, password, userLocation, gender, dob } = req.body;
     const profileImage = req.file;
-    console.log(req.file);
     const parsedLocation = JSON.parse(userLocation);
-    console.log("profile", name, email, password, parsedLocation);
     if (!name) {
       throw new BadRequestError("Name is required", {
         message: "Name is required",
@@ -39,12 +37,19 @@ const createUserWithFirebaseToken = async (req, res, next) => {
         userLocation,
         profileImage
       );
-    console.log("created", accessToken, refreshToken);
-    console.log("created", refreshToken);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.cookie("accessToken", accessToken, cookieOptions);
-    res.cookie("refreshToken", refreshToken, cookieOptions);
-    res.cookie("userId", user._id, cookieOptions);
+    res.cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie("userId", user._id, {
+      ...cookieOptions,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
     res.status(201).json({ message: "Registered successfully", data: user });
   } catch (e) {
     if (e instanceof APIError) {
@@ -56,7 +61,7 @@ const createUserWithFirebaseToken = async (req, res, next) => {
 
 const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, location } = req.body;
     if (!email) {
       throw new BadRequestError("Email is required", {
         message: "Email is required",
@@ -69,15 +74,22 @@ const login = async (req, res, next) => {
     }
     const { user, accessToken, refreshToken } = await authService.login(
       email,
-      password
+      password,
+      location
     );
-    console.log("created", accessToken, refreshToken);
-    console.log("created", refreshToken);
-    console.log("Logged in", user);
     res.setHeader("Access-Control-Allow-Credentials", "true");
-    res.cookie("accessToken", user.accessToken, cookieOptions);
-    res.cookie("refreshToken", user.refreshToken, cookieOptions);
-    res.cookie("userId", user._id, cookieOptions);
+    res.cookie("accessToken", accessToken, {
+      ...cookieOptions,
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+    res.cookie("refreshToken", refreshToken, {
+      ...cookieOptions,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
+    res.cookie("userId", user._id, {
+      ...cookieOptions,
+      maxAge: 15 * 24 * 60 * 60 * 1000,
+    });
     res.status(200).json({ message: "Logged in successfully", data: user });
   } catch (e) {
     if (e instanceof APIError) {

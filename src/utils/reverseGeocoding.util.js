@@ -6,7 +6,6 @@ const extractCity = async (xml) => {
     //console.log("result: from location iq " + JSON.stringify(result));
     // Access the city value
     const city = result.reversegeocode.addressparts[0].city[0];
-    console.log(city);
     return city;
   } catch (error) {
     console.error("Error parsing XML:", error.message);
