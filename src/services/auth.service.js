@@ -81,7 +81,7 @@ const createUserWithFirebaseToken = async (
 
     accessToken = generateAccessToken(
       { userId: newUser._id, email, name },
-      "1d",
+      "60d",
       process.env.JWT_ACCESS_SECRET
     );
     refreshToken = generateAccessToken(
@@ -90,7 +90,7 @@ const createUserWithFirebaseToken = async (
         email,
         name,
       },
-      "15d",
+      "90d",
       process.env.JWT_REFRESH_SECRET
     );
     await Session.create({
@@ -102,12 +102,12 @@ const createUserWithFirebaseToken = async (
     await Session.deleteOne({ userId: createUser._id });
     accessToken = generateAccessToken(
       { userId: createUser._id, email, name },
-      "1d",
+      "60d",
       process.env.JWT_ACCESS_SECRET
     );
     refreshToken = generateAccessToken(
       { userId: createUser._id, email, name },
-      "15d",
+      "90d",
       process.env.JWT_REFRESH_SECRET
     );
     await Session.create({
