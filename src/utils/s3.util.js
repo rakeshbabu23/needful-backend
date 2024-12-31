@@ -267,49 +267,48 @@ const uploadFilesToS3 = async (files, userId, directory) => {
         const videoUploadResult = await videoUpload.done();
 
         // Generate thumbnail
-        await new Promise((resolve, reject) => {
-          ffmpeg(tempInputPath)
-            .screenshots({
-              timestamps: ["50%"], // Create a thumbnail at 50% of the video length
-              filename: thumbnailPath,
-              size: "320x240", // Optional: specify thumbnail size
-            })
-            .on("start", (commandLine) => {
-              console.log("Thumbnail Generation Command:", commandLine);
-            })
-            .on("end", () => {
-              console.log("Thumbnail generation completed");
-              resolve();
-            })
-            .on("error", (err) => {
-              console.error("FFmpeg Thumbnail Error:", err);
-              reject(err);
-            });
-        });
+        // await new Promise((resolve, reject) => {
+        //   ffmpeg(tempInputPath)
+        //     .screenshots({
+        //       timestamps: ["50%"], // Create a thumbnail at 50% of the video length
+        //       filename: thumbnailPath,
+        //       size: "320x240", // Optional: specify thumbnail size
+        //     })
+        //     .on("start", (commandLine) => {
+        //       console.log("Thumbnail Generation Command:", commandLine);
+        //     })
+        //     .on("end", () => {
+        //       console.log("Thumbnail generation completed");
+        //       resolve();
+        //     })
+        //     .on("error", (err) => {
+        //       console.error("FFmpeg Thumbnail Error:", err);
+        //       reject(err);
+        //     });
+        // });
 
         // Upload thumbnail to S3
-        const thumbnailFileStream = fsStream.createReadStream(thumbnailPath);
-        const thumbnailUpload = new Upload({
-          client: s3Client,
-          params: {
-            Bucket: process.env.AWS_BUCKET_NAME,
-            Key: `${Date.now()}-${userId}-${directory}-thumbnail-${sanitizedFileName}.png`,
-            Body: thumbnailFileStream,
-            ContentType: "image/png",
-          },
-        });
-        const thumbnailUploadResult = await thumbnailUpload.done();
+        // const thumbnailFileStream = fsStream.createReadStream(thumbnailPath);
+        // const thumbnailUpload = new Upload({
+        //   client: s3Client,
+        //   params: {
+        //     Bucket: process.env.AWS_BUCKET_NAME,
+        //     Key: `${Date.now()}-${userId}-${directory}-thumbnail-${sanitizedFileName}.png`,
+        //     Body: thumbnailFileStream,
+        //     ContentType: "image/png",
+        //   },
+        // });
+        //const thumbnailUploadResult = await thumbnailUpload.done();
 
         // Clean up temporary files
         await Promise.all([
           fs.unlink(tempInputPath),
           fs.unlink(compressedVideoPath),
-          fs.unlink(thumbnailPath),
         ]);
 
         return {
           videoUrl: videoUploadResult.Location,
-          thumbnailUrl: thumbnailUploadResult.Location,
+          thumbnailUrl: "",
           aspectRatio,
         };
       } catch (error) {

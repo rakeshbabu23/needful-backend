@@ -99,7 +99,42 @@ const login = async (req, res, next) => {
   }
 };
 
+const sendOTPToEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    await authService.sendOTPToEmail(email);
+
+    res.status(200).json({
+      message: "OTP sent successfully",
+    });
+  } catch (e) {
+    if (e instanceof APIError) {
+      return next(e);
+    }
+    return next(new InternalServerError(e.message));
+  }
+};
+
+const verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      throw new Error("Email and OTP are required");
+    }
+    await authService.verifyOtp(email, otp);
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (e) {
+    console.log(e);
+    if (e instanceof APIError) {
+      return next(e);
+    }
+    return next(new InternalServerError(e.message));
+  }
+};
+
 module.exports = {
   createUserWithFirebaseToken,
   login,
+  sendOTPToEmail,
+  verifyOtp,
 };

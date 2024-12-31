@@ -1,18 +1,18 @@
 const axios = require("axios");
-const { Session, User } = require("../models");
+const { Session, User, Otp } = require("../models");
 const { generateAccessToken } = require("../utils/jwt.util");
-const { jwtSecret } = require("../config/config");
 const { extractCity } = require("../utils/reverseGeocoding.util");
 //const admin = require("../config/firebase.config");
 const {
-  ValidationError,
   UnauthorizedError,
-  InternalServerError,
   ForbiddenError,
+  ConflictError,
+  NotFoundError,
   BadRequestError,
-  APIError,
 } = require("../lib/customError");
+const { sendEmail } = require("../config/email.config");
 const { uploadProfilePicture } = require("../utils/s3.util");
+const { generateRandomSixDigitOtp } = require("../utils/otp.util");
 function validateCoordinates(input) {
   const parts = input.split(",");
   if (parts.length === 2) {
@@ -166,4 +166,59 @@ const login = async (email, password, location) => {
   return { accessToken, refreshToken, user };
 };
 
-module.exports = { createUserWithFirebaseToken, login };
+const sendOTPToEmail = async (email) => {
+  const otp = generateRandomSixDigitOtp();
+  const fiveMinutes = 5 * 60 * 1000;
+  const now = new Date();
+  const existingOtp = await Otp.findOne({ email });
+  if (existingOtp) {
+    const otpAge = now - new Date(existingOtp.createdAt);
+    if (otpAge < fiveMinutes) {
+      throw new ConflictError(
+        "An OTP has already been sent and is not expired yet."
+      );
+    }
+  }
+
+  const otpObj = await Otp.findOneAndUpdate(
+    { email },
+    { otp, createdAt: now },
+    { upsert: true, new: true }
+  );
+  try {
+    await sendEmail(email, otp);
+    return;
+  } catch (error) {
+    console.error("Error sending OTP", error);
+    throw error;
+  }
+};
+
+const verifyOtp = async (email, otp) => {
+  const otpObj = await Otp.findOne({ email });
+  console.log("found", otpObj);
+  if (!otpObj) {
+    throw NotFoundError("OTP not found.", {
+      message: "Please request for otp verification",
+    });
+  }
+  const otpAge = new Date() - new Date(otpObj.createdAt);
+  if (otpAge > 5 * 60 * 1000) {
+    throw new BadRequestError("OTP has expired.", {
+      message: "OTP has expired.",
+    });
+  }
+  if (otpObj.otp.toString() !== otp.toString()) {
+    throw new BadRequestError("Invalid OTP.", {
+      message: "Invalid otp",
+    });
+  }
+  return;
+};
+
+module.exports = {
+  createUserWithFirebaseToken,
+  login,
+  sendOTPToEmail,
+  verifyOtp,
+};

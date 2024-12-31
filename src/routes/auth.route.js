@@ -9,5 +9,7 @@ router.post(
   authController.createUserWithFirebaseToken
 );
 router.post("/login", authController.login);
+router.post("/send-otp", authController.sendOTPToEmail);
+router.post("/verify-otp", authController.verifyOtp);
 
 module.exports = router;
