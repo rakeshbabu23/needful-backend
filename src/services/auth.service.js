@@ -50,11 +50,12 @@ const createUserWithFirebaseToken = async (
     try {
       const options = {
         method: "GET",
-        url: `https://us1.locationiq.com/v1/reverse?lat=${sanitizedCoordinates[1]}&lon=${sanitizedCoordinates[0]}&key=${LOCATIONIQ_API_KEY}`,
+        url: `https://us1.locationiq.com/v1/reverse?lat=${sanitizedCoordinates[1]}&lon=${sanitizedCoordinates[0]}&key=${LOCATIONIQ_API_KEY}&format=json`,
         headers: { accept: "application/json" },
       };
       const response = await axios.request(options);
-      address = await extractCity(response.data);
+
+      address = response.data.display_name;
     } catch (err) {
       console.error("Error fetching address", err);
       throw err;
